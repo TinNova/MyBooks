@@ -39,17 +39,31 @@ class BookViewModel @Inject constructor(
     }
 
     private fun getWantToReadBooks() {
+        _uiState.value = _uiState.value.copy(isLoading = true)
+        
         val disposable = bookRepo.getWantToReadBooks(page = 1)
-            .subscribeOn(Schedulers.io()) //Can I use this directly? Or should it be injected?
-            .observeOn(AndroidSchedulers.mainThread()) //Understand what changed when these are swapped
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
-                { result -> //should I implement coding on rails?
-                    // Handle success - update UI state with books
-                    println("Books fetched successfully: ${result.entries.size} books")
+                { result ->
+                    val books = result.entries.map { entry ->
+                        BookContract.BookUi(
+                            title = entry.work.title,
+                            authors = entry.work.authorNames.joinToString(", "),
+                            coverUrl = "https://covers.openlibrary.org/b/id/${entry.work.coverId}-M.jpg"
+                        )
+                    }
+                    _uiState.value = _uiState.value.copy(
+                        books = books,
+                        isLoading = false,
+                        error = null
+                    )
                 },
                 { error ->
-                    // Handle error
-                    println("Error fetching books: ${error.message}")
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = error.message ?: "Unknown error"
+                    )
                 }
             )
         compositeDisposable.add(disposable)
@@ -61,8 +75,6 @@ class BookViewModel @Inject constructor(
     }
 
     companion object {
-        fun initialUiState() = BookContract.UiState(
-            greeting = "Hello World",
-        )
+        fun initialUiState() = BookContract.UiState()
     }
 }

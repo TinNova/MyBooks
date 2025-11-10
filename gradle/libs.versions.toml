@@ -32,6 +32,9 @@ rxJavaVersion = "3.1.12"
 rxAndroidVersion = "3.0.2"
 retrofitRxAdapter = "3.0.0"
 
+# Image Loading
+coilVersion = "3.3.0"
+
 # Testing
 jUnit5Version = "5.8.2"
 mockkVersion = "1.14.6"
@@ -84,6 +87,10 @@ retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-
 rxjava = { group = "io.reactivex.rxjava3", name = "rxjava", version.ref = "rxJavaVersion" }
 rxandroid = { group = "io.reactivex.rxjava3", name = "rxandroid", version.ref = "rxAndroidVersion" }
 retrofit-adapter-rxjava3 = { group = "com.squareup.retrofit2", name = "adapter-rxjava3", version.ref = "retrofitRxAdapter" }
+
+# Image Loading
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coilVersion" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coilVersion" }
 
 # Testing
 junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "jUnit5Version" }

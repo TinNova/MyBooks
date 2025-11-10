@@ -22,10 +22,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyBooksTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    BookScreen()
+                BookScreen()
 
-                }
 
                 //TODO: Book Cover URL:
                 //"https://covers.openlibrary.org/b/id/$value-$size.jpg"

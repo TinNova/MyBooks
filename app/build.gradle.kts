@@ -88,6 +88,10 @@ dependencies {
     implementation(libs.rxandroid)
     implementation(libs.retrofit.adapter.rxjava3)
 
+    // Image Loading
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
     // Testing - Unit
     testImplementation(libs.junit)
     testImplementation(libs.junit.jupiter.api)

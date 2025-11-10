@@ -23,11 +23,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyBooksTheme {
                 BookScreen()
-
-
-                //TODO: Book Cover URL:
-                //"https://covers.openlibrary.org/b/id/$value-$size.jpg"
-                // size = S, M, L
             }
         }
     }

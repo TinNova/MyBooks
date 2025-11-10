@@ -1,5 +1,6 @@
 package com.tinnovakovic.mybooks.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,9 +51,11 @@ fun BookContent(
     }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Box(modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
             when {
                 uiState.isLoading -> {
                     CircularProgressIndicator(
@@ -77,7 +80,12 @@ fun BookContent(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(uiState.books) { book ->
-                            BookItem(book)
+                            BookItem(
+                                book,
+                                Modifier.clickable {
+                                    uiEvent(BookContract.UiEvent.BookClicked(book.key))
+                                },
+                            )
                         }
                     }
                 }
@@ -87,9 +95,9 @@ fun BookContent(
 }
 
 @Composable
-fun BookItem(book: Book) {
+fun BookItem(book: Book, modifier: Modifier) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AsyncImage(

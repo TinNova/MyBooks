@@ -14,9 +14,9 @@ interface BookApi {
         @Query("page") page: Int
     ): Single<BookResultApi>
 
-    @GET("{key}")
+    @GET("{key}.json")
     fun getWork(
-        @Path("key") key: String
+        @Path("key", encoded = true) key: String
     ): Single<WorkApi>
 
 }

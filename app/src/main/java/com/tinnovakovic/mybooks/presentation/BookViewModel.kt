@@ -2,7 +2,7 @@ package com.tinnovakovic.mybooks.presentation
 
 import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
-import com.tinnovakovic.mybooks.data.BookRepo
+import com.tinnovakovic.mybooks.domain.GetBookDetailUseCase
 import com.tinnovakovic.mybooks.domain.GetWantToReadBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -16,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class BookViewModel @Inject constructor(
     private val getWantToReadBooksUseCase: GetWantToReadBooksUseCase,
+    private val getBookDetailUseCase: GetBookDetailUseCase,
 ) : BookContract, ViewModel() {
 
     private var initialised = false
@@ -36,6 +37,7 @@ class BookViewModel @Inject constructor(
     fun onUiEvent(event: BookContract.UiEvent) {
         when (event) {
             BookContract.UiEvent.Initialise -> initialise()
+            is BookContract.UiEvent.BookClicked -> getBookDetails(event.key)
         }
     }
 
@@ -57,6 +59,30 @@ class BookViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = error.message ?: "Unknown error"
+                    )
+                }
+            )
+        compositeDisposable.add(disposable)
+    }
+
+    private fun getBookDetails(key: String) {
+        _uiState.value = _uiState.value.copy(isLoadingDetails = true)
+        
+        val disposable = getBookDetailUseCase.execute(key)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { bookDetail ->
+                    _uiState.value = _uiState.value.copy(
+                        bookDetail = bookDetail,
+                        isLoadingDetails = false,
+                        error = null
+                    )
+                },
+                { error ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingDetails = false,
+                        error = error.message ?: "Failed to load book details"
                     )
                 }
             )

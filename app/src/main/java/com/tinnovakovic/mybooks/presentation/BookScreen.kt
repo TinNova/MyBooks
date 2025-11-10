@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.tinnovakovic.mybooks.domain.models.Book
 
 @Composable
 fun BookScreen() {
@@ -86,7 +87,7 @@ fun BookContent(
 }
 
 @Composable
-fun BookItem(book: BookContract.BookUi) {
+fun BookItem(book: Book) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -110,7 +111,7 @@ fun BookItem(book: BookContract.BookUi) {
         )
 
         Text(
-            text = book.authors,
+            text = book.authorNames,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,

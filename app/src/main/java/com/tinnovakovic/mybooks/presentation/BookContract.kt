@@ -1,17 +1,13 @@
 package com.tinnovakovic.mybooks.presentation
 
+import com.tinnovakovic.mybooks.domain.models.Book
+
 interface BookContract {
 
     data class UiState(
-        val books: List<BookUi> = emptyList(),
+        val books: List<Book> = emptyList(),
         val isLoading: Boolean = false,
         val error: String? = null
-    )
-
-    data class BookUi(
-        val title: String,
-        val authors: String,
-        val coverUrl: String
     )
 
     sealed class UiEvent {

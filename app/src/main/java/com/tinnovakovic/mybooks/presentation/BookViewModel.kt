@@ -3,6 +3,7 @@ package com.tinnovakovic.mybooks.presentation
 import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
 import com.tinnovakovic.mybooks.data.BookRepo
+import com.tinnovakovic.mybooks.domain.GetWantToReadBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -14,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BookViewModel @Inject constructor(
-    private val bookRepo: BookRepo,
+    private val getWantToReadBooksUseCase: GetWantToReadBooksUseCase,
 ) : BookContract, ViewModel() {
 
     private var initialised = false
@@ -41,18 +42,11 @@ class BookViewModel @Inject constructor(
     private fun getWantToReadBooks() {
         _uiState.value = _uiState.value.copy(isLoading = true)
         
-        val disposable = bookRepo.getWantToReadBooks(page = 1)
+        val disposable = getWantToReadBooksUseCase.execute(page = 1)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
-                { result ->
-                    val books = result.entries.map { entry ->
-                        BookContract.BookUi(
-                            title = entry.work.title,
-                            authors = entry.work.authorNames.joinToString(", "),
-                            coverUrl = "https://covers.openlibrary.org/b/id/${entry.work.coverId}-M.jpg"
-                        )
-                    }
+                { books ->
                     _uiState.value = _uiState.value.copy(
                         books = books,
                         isLoading = false,

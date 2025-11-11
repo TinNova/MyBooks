@@ -9,12 +9,15 @@ data class WorkApi(
     @SerializedName("first_publish_date")
     val firstPublishDate: String?,
     val subject: List<String>?,
-    val description: Description?,
+    @SerializedName("description")
+    private val _description: Any?,
     @SerializedName("latest_revision")
     val latestRevision: Int?,
-)
-
-data class Description(
-    val type: String,
-    val value: String,
-)
+) {
+    val description: String?
+        get() = when (_description) {
+            is String -> _description
+            is Map<*, *> -> (_description["value"] as? String)
+            else -> null
+        }
+}

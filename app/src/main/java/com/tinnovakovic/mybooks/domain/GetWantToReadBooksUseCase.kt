@@ -5,7 +5,9 @@ import com.tinnovakovic.mybooks.domain.models.Book
 import io.reactivex.rxjava3.core.Single
 import javax.inject.Inject
 
-class GetWantToReadBooksUseCase @Inject constructor(private val repo: BookRepo) {
+class GetWantToReadBooksUseCase @Inject constructor(
+    private val repo: BookRepo,
+    private val errorMapper: ErrorMapper) {
 
     fun execute(page: Int = 1): Single<List<Book>> {
         return repo.getWantToReadBooks(page)
@@ -19,10 +21,14 @@ class GetWantToReadBooksUseCase @Inject constructor(private val repo: BookRepo) 
                     )
                 }
             }
+            .onErrorResumeNext { error ->
+                Single.error(errorMapper.map(error))
+            }
     }
 
     companion object {
         const val COVER_IMAGE_BASE = "https://covers.openlibrary.org/b/id/"
         const val MEDIUM_SIZE_IMAGE = "-M.jpg"
     }
+
 }

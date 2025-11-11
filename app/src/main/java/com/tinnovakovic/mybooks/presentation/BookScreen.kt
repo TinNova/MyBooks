@@ -84,7 +84,7 @@ fun BookContent(
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = "Error: ${uiState.error}",
+                            text = uiState.error.message,
                             color = MaterialTheme.colorScheme.error
                         )
                         Spacer(Modifier.height(16.dp))

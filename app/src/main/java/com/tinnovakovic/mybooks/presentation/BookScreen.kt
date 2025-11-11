@@ -120,7 +120,7 @@ fun BookContent(
                 onDismissRequest = { uiEvent(BookContract.UiEvent.DismissBottomSheet) },
                 sheetState = sheetState
             ) {
-                BookDetailContent(
+                BottomSheetContent(
                     bookDetail = uiState.bookDetail,
                     isLoading = uiState.isLoadingDetails,
                     error = uiState.error as? BookContract.Error.BookDetail
@@ -167,7 +167,7 @@ fun BookItem(book: Book, modifier: Modifier) {
 }
 
 @Composable
-fun BookDetailContent(
+fun BottomSheetContent(
     bookDetail: BookDetail?,
     isLoading: Boolean,
     error: BookContract.Error.BookDetail?
@@ -180,72 +180,19 @@ fun BookDetailContent(
     ) {
         when {
             isLoading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
 
             bookDetail != null -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Text(
-                        text = bookDetail.title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    if (bookDetail.firstPublishDate.isNotEmpty()) {
-                        DetailRow(label = "First Published", value = bookDetail.firstPublishDate)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-
-                    if (bookDetail.latestRevision.isNotEmpty()) {
-                        DetailRow(label = "Latest Revision", value = bookDetail.latestRevision)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-
-                    if (bookDetail.description.isNotEmpty()) {
-                        Text(
-                            text = "Description",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = bookDetail.description,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    if (bookDetail.subjectPlaces.isNotEmpty()) {
-                        Text(
-                            text = "Subject Places",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = bookDetail.subjectPlaces.joinToString(", "),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+                BookDetailContent(bookDetail)
             }
 
             error != null -> {
-                    Text(
-                        text = error.message,
-                        modifier = Modifier.align(Alignment.Center),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                Text(
+                    text = error.message,
+                    modifier = Modifier.align(Alignment.Center),
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
 
             else -> {
@@ -256,6 +203,62 @@ fun BookDetailContent(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun BookDetailContent(bookDetail: BookDetail) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = bookDetail.title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (bookDetail.firstPublishDate.isNotEmpty()) {
+            DetailRow(label = "First Published", value = bookDetail.firstPublishDate)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        if (bookDetail.latestRevision.isNotEmpty()) {
+            DetailRow(label = "Latest Revision", value = bookDetail.latestRevision)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        if (bookDetail.description.isNotEmpty()) {
+            Text(
+                text = "Description",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = bookDetail.description,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        if (bookDetail.subjectPlaces.isNotEmpty()) {
+            Text(
+                text = "Subject Places",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = bookDetail.subjectPlaces.joinToString(", "),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

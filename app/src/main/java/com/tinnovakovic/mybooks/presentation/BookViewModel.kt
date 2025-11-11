@@ -110,7 +110,6 @@ class BookViewModel @Inject constructor(
 
 
 //TODO:
-// - Handle offline errors, Coding on Rails?
 // - Clean the code
 // - Handle pagination
 // - Write Unit Tests
@@ -120,6 +119,7 @@ class BookViewModel @Inject constructor(
 
 //Done
 // - Display BookDetail in bottomSheet
+// - Handle offline and network errors in domain layer
 
 
 

@@ -41,6 +41,19 @@ class BookViewModel @Inject constructor(
     private val _showBottomSheet = MutableStateFlow(false)
     val showBottomSheet: StateFlow<Boolean> = _showBottomSheet.asStateFlow()
 
+    // Pagination state
+    private val _currentPage = MutableStateFlow(1)
+    val currentPage: StateFlow<Int> = _currentPage.asStateFlow()
+
+    private val _isLoadingMore = MutableStateFlow(false)
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
+
+    private val _canLoadMore = MutableStateFlow(true)
+    val canLoadMore: StateFlow<Boolean> = _canLoadMore.asStateFlow()
+
+    private val _paginationError = MutableStateFlow<String?>(null)
+    val paginationError: StateFlow<String?> = _paginationError.asStateFlow()
+
     @MainThread
     fun initialise() {
         if (initialised) return
@@ -53,12 +66,15 @@ class BookViewModel @Inject constructor(
             BookContract.UiEvent.Initialise -> initialise()
             is BookContract.UiEvent.BookClicked -> getBookDetails(event.key)
             BookContract.UiEvent.DismissBottomSheet -> dismissBottomSheet()
-            BookContract.UiEvent.TryAgainClicked -> getWantToReadBooks()
+            BookContract.UiEvent.TryAgainClicked -> retryInitialLoad()
+            BookContract.UiEvent.LoadMore -> loadNextPage()
+            BookContract.UiEvent.RetryPagination -> retryPagination()
         }
     }
 
     private fun getWantToReadBooks() {
         _isLoading.value = true
+        _currentPage.value = 1
         
         val disposable = getWantToReadBooksUseCase.execute(page = 1)
             .subscribeOn(Schedulers.io())
@@ -68,6 +84,7 @@ class BookViewModel @Inject constructor(
                     _books.value = books
                     _isLoading.value = false
                     _error.value = null
+                    _canLoadMore.value = books.isNotEmpty()
                 },
                 { error ->
                     _isLoading.value = false
@@ -75,6 +92,50 @@ class BookViewModel @Inject constructor(
                 }
             )
         compositeDisposable.add(disposable)
+    }
+
+    private fun retryInitialLoad() {
+        _books.value = emptyList()
+        _error.value = null
+        getWantToReadBooks()
+    }
+
+    private fun loadNextPage() {
+        // Debouncing: prevent multiple simultaneous loads
+        if (_isLoadingMore.value || !_canLoadMore.value || _isLoading.value) {
+            return
+        }
+
+        _isLoadingMore.value = true
+        _paginationError.value = null
+        val nextPage = _currentPage.value + 1
+        
+        val disposable = getWantToReadBooksUseCase.execute(page = nextPage)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { newBooks ->
+                    if (newBooks.isEmpty()) {
+                        // No more data to load
+                        _canLoadMore.value = false
+                    } else {
+                        // Append new books to existing list
+                        _books.value = _books.value + newBooks
+                        _currentPage.value = nextPage
+                    }
+                    _isLoadingMore.value = false
+                },
+                { error ->
+                    _isLoadingMore.value = false
+                    _paginationError.value = error.message ?: "Failed to load more books"
+                }
+            )
+        compositeDisposable.add(disposable)
+    }
+
+    private fun retryPagination() {
+        _paginationError.value = null
+        loadNextPage()
     }
 
     private fun getBookDetails(key: String) {

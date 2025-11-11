@@ -11,8 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -50,6 +55,10 @@ fun BookScreen() {
     val isLoadingDetails by viewModel.isLoadingDetails.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val showBottomSheet by viewModel.showBottomSheet.collectAsStateWithLifecycle()
+    
+    // Pagination state
+    val isLoadingMore by viewModel.isLoadingMore.collectAsStateWithLifecycle()
+    val paginationError by viewModel.paginationError.collectAsStateWithLifecycle()
 
     BookContent(
         books = books,
@@ -58,6 +67,8 @@ fun BookScreen() {
         isLoadingDetails = isLoadingDetails,
         error = error,
         showBottomSheet = showBottomSheet,
+        isLoadingMore = isLoadingMore,
+        paginationError = paginationError,
         onUiEvent = viewModel::onUiEvent
     )
 }
@@ -71,13 +82,31 @@ fun BookContent(
     isLoadingDetails: Boolean,
     error: BookContract.Error?,
     showBottomSheet: Boolean,
+    isLoadingMore: Boolean,
+    paginationError: String?,
     onUiEvent: (BookContract.UiEvent) -> Unit,
 ) {
     LaunchedEffect(Unit) {
         onUiEvent(BookContract.UiEvent.Initialise)
     }
 
+    val gridState = rememberLazyGridState()
     val sheetState = rememberModalBottomSheetState()
+    
+    // Detect when user scrolls near bottom for pagination
+    LaunchedEffect(gridState) {
+        snapshotFlow { 
+            gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index 
+        }.collect { lastVisibleIndex ->
+            if (lastVisibleIndex != null) {
+                val totalItems = gridState.layoutInfo.totalItemsCount
+                // Trigger load when user is 3 items from the end
+                if (lastVisibleIndex >= totalItems - 3 && !isLoading) {
+                    onUiEvent(BookContract.UiEvent.LoadMore)
+                }
+            }
+        }
+    }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(
@@ -114,6 +143,7 @@ fun BookContent(
                 books.isNotEmpty() -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
+                        state = gridState,
                         contentPadding = PaddingValues(16.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -125,6 +155,15 @@ fun BookContent(
                                 Modifier.clickable {
                                     onUiEvent(BookContract.UiEvent.BookClicked(book.key))
                                 },
+                            )
+                        }
+                        
+                        // Pagination footer - spans full width
+                        item(span = { GridItemSpan(2) }) {
+                            PaginationFooter(
+                                isLoadingMore = isLoadingMore,
+                                paginationError = paginationError,
+                                onRetry = { onUiEvent(BookContract.UiEvent.RetryPagination) }
                             )
                         }
                     }
@@ -292,5 +331,42 @@ fun DetailRow(label: String, value: String) {
             text = value,
             style = MaterialTheme.typography.bodyMedium
         )
+    }
+}
+
+@Composable
+fun PaginationFooter(
+    isLoadingMore: Boolean,
+    paginationError: String?,
+    onRetry: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            isLoadingMore -> {
+                CircularProgressIndicator()
+            }
+            paginationError != null -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = paginationError,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = onRetry) {
+                        Text("Retry")
+                    }
+                }
+            }
+        }
     }
 }

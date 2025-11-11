@@ -8,6 +8,7 @@ interface BookContract {
     sealed class Error {
         data class Books(val message: String): Error()
         data class BookDetail(val message: String): Error()
+        data class Pagination(val message: String): Error()
     }
 
     sealed class UiEvent {
@@ -15,5 +16,7 @@ interface BookContract {
         data object TryAgainClicked : UiEvent()
         data class BookClicked(val key: String) : UiEvent()
         data object DismissBottomSheet : UiEvent()
+        data object LoadMore : UiEvent()
+        data object RetryPagination : UiEvent()
     }
 }

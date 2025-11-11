@@ -38,6 +38,7 @@ class BookViewModel @Inject constructor(
         when (event) {
             BookContract.UiEvent.Initialise -> initialise()
             is BookContract.UiEvent.BookClicked -> getBookDetails(event.key)
+            BookContract.UiEvent.DismissBottomSheet -> dismissBottomSheet()
         }
     }
 
@@ -66,7 +67,7 @@ class BookViewModel @Inject constructor(
     }
 
     private fun getBookDetails(key: String) {
-        _uiState.value = _uiState.value.copy(isLoadingDetails = true)
+        _uiState.value = _uiState.value.copy(isLoadingDetails = true, showBottomSheet = true)
         
         val disposable = getBookDetailUseCase.execute(key)
             .subscribeOn(Schedulers.io())
@@ -89,6 +90,13 @@ class BookViewModel @Inject constructor(
         compositeDisposable.add(disposable)
     }
 
+    private fun dismissBottomSheet() {
+        _uiState.value = _uiState.value.copy(
+            showBottomSheet = false,
+            bookDetail = null
+        )
+    }
+
     override fun onCleared() {
         super.onCleared()
         compositeDisposable.clear()
@@ -98,3 +106,29 @@ class BookViewModel @Inject constructor(
         fun initialUiState() = BookContract.UiState()
     }
 }
+
+
+//TODO:
+// - Display BookDetail in bottomSheet
+// - Clean the code
+// - Handle pagination
+// - Write Unit Tests
+// - Write Compose Tests in Robolectric
+// - Check against ClearScore and JsonSpeedRun Apps
+// - Refactor to MVVM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

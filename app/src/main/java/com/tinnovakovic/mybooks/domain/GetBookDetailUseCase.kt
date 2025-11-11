@@ -11,10 +11,10 @@ class GetBookDetailUseCase @Inject constructor(private val repo: BookRepo) {
         return repo.getWork(key)
             .map { workApi ->
                 BookDetail(
-                    title = workApi.title?: "",
+                    title = workApi.title ?: "",
                     firstPublishDate = workApi.firstPublishDate ?: "",
                     latestRevision = workApi.latestRevision.toString(),
-                    description = workApi.description?.value ?: "",
+                    description = workApi.description ?: "",
                     subjectPlaces = workApi.subjectPlaces ?: emptyList()
                 )
             }

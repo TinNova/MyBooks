@@ -7,14 +7,16 @@ interface BookContract {
 
     data class UiState(
         val books: List<Book> = emptyList(),
+        val bookDetail: BookDetail? = null,
         val isLoading: Boolean = false,
         val error: String? = null,
-        val bookDetail: BookDetail? = null,
-        val isLoadingDetails: Boolean = false
+        val isLoadingDetails: Boolean = false,
+        val showBottomSheet: Boolean = false
     )
 
     sealed class UiEvent {
         data object Initialise : UiEvent()
         data class BookClicked(val key: String) : UiEvent()
+        data object DismissBottomSheet : UiEvent()
     }
 }

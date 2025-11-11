@@ -41,23 +41,40 @@ import com.tinnovakovic.mybooks.domain.models.BookDetail
 
 @Composable
 fun BookScreen() {
-
     val viewModel = hiltViewModel<BookViewModel>()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    
+    // MVVM: Observe multiple StateFlows
+    val books by viewModel.books.collectAsStateWithLifecycle()
+    val bookDetail by viewModel.bookDetail.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val isLoadingDetails by viewModel.isLoadingDetails.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val showBottomSheet by viewModel.showBottomSheet.collectAsStateWithLifecycle()
 
-    BookContent(uiState, viewModel::onUiEvent)
-
+    BookContent(
+        books = books,
+        bookDetail = bookDetail,
+        isLoading = isLoading,
+        isLoadingDetails = isLoadingDetails,
+        error = error,
+        showBottomSheet = showBottomSheet,
+        onUiEvent = viewModel::onUiEvent
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookContent(
-    uiState: BookContract.UiState,
-    uiEvent: (BookContract.UiEvent) -> Unit,
+    books: List<Book>,
+    bookDetail: BookDetail?,
+    isLoading: Boolean,
+    isLoadingDetails: Boolean,
+    error: BookContract.Error?,
+    showBottomSheet: Boolean,
+    onUiEvent: (BookContract.UiEvent) -> Unit,
 ) {
-
-    LaunchedEffect(true) {
-        uiEvent(BookContract.UiEvent.Initialise)
+    LaunchedEffect(Unit) {
+        onUiEvent(BookContract.UiEvent.Initialise)
     }
 
     val sheetState = rememberModalBottomSheetState()
@@ -69,13 +86,13 @@ fun BookContent(
                 .fillMaxSize()
         ) {
             when {
-                uiState.isLoading -> {
+                isLoading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
 
-                uiState.error is BookContract.Error.Books -> {
+                error is BookContract.Error.Books -> {
                     Column(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -84,17 +101,17 @@ fun BookContent(
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = uiState.error.message,
+                            text = error.message,
                             color = MaterialTheme.colorScheme.error
                         )
                         Spacer(Modifier.height(16.dp))
-                        Button(onClick = { uiEvent(BookContract.UiEvent.TryAgainClicked) }) {
+                        Button(onClick = { onUiEvent(BookContract.UiEvent.TryAgainClicked) }) {
                             Text("Try Again")
                         }
                     }
                 }
 
-                uiState.books.isNotEmpty() -> {
+                books.isNotEmpty() -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
                         contentPadding = PaddingValues(16.dp),
@@ -102,11 +119,11 @@ fun BookContent(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(uiState.books) { book ->
+                        items(books) { book ->
                             BookItem(
                                 book,
                                 Modifier.clickable {
-                                    uiEvent(BookContract.UiEvent.BookClicked(book.key))
+                                    onUiEvent(BookContract.UiEvent.BookClicked(book.key))
                                 },
                             )
                         }
@@ -115,15 +132,15 @@ fun BookContent(
             }
         }
 
-        if (uiState.showBottomSheet) {
+        if (showBottomSheet) {
             ModalBottomSheet(
-                onDismissRequest = { uiEvent(BookContract.UiEvent.DismissBottomSheet) },
+                onDismissRequest = { onUiEvent(BookContract.UiEvent.DismissBottomSheet) },
                 sheetState = sheetState
             ) {
                 BottomSheetContent(
-                    bookDetail = uiState.bookDetail,
-                    isLoading = uiState.isLoadingDetails,
-                    error = uiState.error as? BookContract.Error.BookDetail
+                    bookDetail = bookDetail,
+                    isLoading = isLoadingDetails,
+                    error = error as? BookContract.Error.BookDetail
                 )
             }
         }

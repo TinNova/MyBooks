@@ -22,17 +22,31 @@ class BookViewModel @Inject constructor(
     private var initialised = false
     private val compositeDisposable = CompositeDisposable()
 
+    // MVVM: Multiple StateFlows instead of single UiState
+    private val _books = MutableStateFlow<List<com.tinnovakovic.mybooks.domain.models.Book>>(emptyList())
+    val books: StateFlow<List<com.tinnovakovic.mybooks.domain.models.Book>> = _books.asStateFlow()
+
+    private val _bookDetail = MutableStateFlow<com.tinnovakovic.mybooks.domain.models.BookDetail?>(null)
+    val bookDetail: StateFlow<com.tinnovakovic.mybooks.domain.models.BookDetail?> = _bookDetail.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _isLoadingDetails = MutableStateFlow(false)
+    val isLoadingDetails: StateFlow<Boolean> = _isLoadingDetails.asStateFlow()
+
+    private val _error = MutableStateFlow<BookContract.Error?>(null)
+    val error: StateFlow<BookContract.Error?> = _error.asStateFlow()
+
+    private val _showBottomSheet = MutableStateFlow(false)
+    val showBottomSheet: StateFlow<Boolean> = _showBottomSheet.asStateFlow()
+
     @MainThread
     fun initialise() {
         if (initialised) return
         initialised = true
-
         getWantToReadBooks()
-
     }
-
-    private val _uiState = MutableStateFlow(initialUiState())
-    val uiState: StateFlow<BookContract.UiState> = _uiState.asStateFlow()
 
     fun onUiEvent(event: BookContract.UiEvent) {
         when (event) {
@@ -44,58 +58,49 @@ class BookViewModel @Inject constructor(
     }
 
     private fun getWantToReadBooks() {
-        _uiState.value = _uiState.value.copy(isLoading = true)
+        _isLoading.value = true
         
         val disposable = getWantToReadBooksUseCase.execute(page = 1)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { books ->
-                    _uiState.value = _uiState.value.copy(
-                        books = books,
-                        isLoading = false,
-                        error = null
-                    )
+                    _books.value = books
+                    _isLoading.value = false
+                    _error.value = null
                 },
                 { error ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = BookContract.Error.Books(error.message ?: "Unknown error")
-                    )
+                    _isLoading.value = false
+                    _error.value = BookContract.Error.Books(error.message ?: "Unknown error")
                 }
             )
         compositeDisposable.add(disposable)
     }
 
     private fun getBookDetails(key: String) {
-        _uiState.value = _uiState.value.copy(isLoadingDetails = true, showBottomSheet = true)
+        _isLoadingDetails.value = true
+        _showBottomSheet.value = true
         
         val disposable = getBookDetailUseCase.execute(key)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { bookDetail ->
-                    _uiState.value = _uiState.value.copy(
-                        bookDetail = bookDetail,
-                        isLoadingDetails = false,
-                        error = null
-                    )
+                    _bookDetail.value = bookDetail
+                    _isLoadingDetails.value = false
+                    _error.value = null
                 },
                 { error ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoadingDetails = false,
-                        error = BookContract.Error.BookDetail(error.message ?: "Failed to load book details")
-                    )
+                    _isLoadingDetails.value = false
+                    _error.value = BookContract.Error.BookDetail(error.message ?: "Failed to load book details")
                 }
             )
         compositeDisposable.add(disposable)
     }
 
     private fun dismissBottomSheet() {
-        _uiState.value = _uiState.value.copy(
-            showBottomSheet = false,
-            bookDetail = null
-        )
+        _showBottomSheet.value = false
+        _bookDetail.value = null
     }
 
     override fun onCleared() {
@@ -103,9 +108,6 @@ class BookViewModel @Inject constructor(
         compositeDisposable.clear()
     }
 
-    companion object {
-        fun initialUiState() = BookContract.UiState()
-    }
 }
 
 
@@ -115,11 +117,11 @@ class BookViewModel @Inject constructor(
 // - Write Unit Tests
 // - Write Compose Tests in Robolectric
 // - Check against ClearScore and JsonSpeedRun Apps
-// - Refactor to MVVM
-
-//Done
+//
+//Done:
 // - Display BookDetail in bottomSheet
 // - Handle offline and network errors in domain layer
+// - Refactor to MVVM with event-based interactions
 
 
 

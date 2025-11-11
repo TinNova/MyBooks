@@ -5,16 +5,7 @@ import com.tinnovakovic.mybooks.domain.models.BookDetail
 
 interface BookContract {
 
-    data class UiState(
-        val books: List<Book> = emptyList(),
-        val bookDetail: BookDetail? = null,
-        val isLoading: Boolean = false,
-        val error: Error? = null,
-        val isLoadingDetails: Boolean = false,
-        val showBottomSheet: Boolean = false
-    )
-
-    sealed class Error() {
+    sealed class Error {
         data class Books(val message: String): Error()
         data class BookDetail(val message: String): Error()
     }

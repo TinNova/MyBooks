@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -74,12 +75,23 @@ fun BookContent(
                     )
                 }
 
-                uiState.error != null -> {
-                    Text(
-                        text = "Error: ${uiState.error}",
-                        modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.error
-                    )
+                uiState.error is BookContract.Error.Books -> {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Error: ${uiState.error}",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = { uiEvent(BookContract.UiEvent.TryAgainClicked) }) {
+                            Text("Try Again")
+                        }
+                    }
                 }
 
                 uiState.books.isNotEmpty() -> {
@@ -110,7 +122,8 @@ fun BookContent(
             ) {
                 BookDetailContent(
                     bookDetail = uiState.bookDetail,
-                    isLoading = uiState.isLoadingDetails
+                    isLoading = uiState.isLoadingDetails,
+                    error = uiState.error as? BookContract.Error.BookDetail
                 )
             }
         }
@@ -156,7 +169,9 @@ fun BookItem(book: Book, modifier: Modifier) {
 @Composable
 fun BookDetailContent(
     bookDetail: BookDetail?,
-    isLoading: Boolean
+    isLoading: Boolean,
+    error: BookContract.Error.BookDetail?
+
 ) {
     Box(
         modifier = Modifier
@@ -223,6 +238,14 @@ fun BookDetailContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
                 }
+            }
+
+            error != null -> {
+                    Text(
+                        text = error.message,
+                        modifier = Modifier.align(Alignment.Center),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
             }
 
             else -> {

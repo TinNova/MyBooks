@@ -39,6 +39,7 @@ class BookViewModel @Inject constructor(
             BookContract.UiEvent.Initialise -> initialise()
             is BookContract.UiEvent.BookClicked -> getBookDetails(event.key)
             BookContract.UiEvent.DismissBottomSheet -> dismissBottomSheet()
+            BookContract.UiEvent.TryAgainClicked -> getWantToReadBooks()
         }
     }
 
@@ -59,7 +60,7 @@ class BookViewModel @Inject constructor(
                 { error ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = error.message ?: "Unknown error"
+                        error = BookContract.Error.Books(error.message ?: "Unknown error")
                     )
                 }
             )
@@ -83,7 +84,7 @@ class BookViewModel @Inject constructor(
                 { error ->
                     _uiState.value = _uiState.value.copy(
                         isLoadingDetails = false,
-                        error = error.message ?: "Failed to load book details"
+                        error = BookContract.Error.BookDetail(error.message ?: "Failed to load book details")
                     )
                 }
             )
@@ -109,13 +110,16 @@ class BookViewModel @Inject constructor(
 
 
 //TODO:
-// - Display BookDetail in bottomSheet
+// - Handle offline errors, Coding on Rails?
 // - Clean the code
 // - Handle pagination
 // - Write Unit Tests
 // - Write Compose Tests in Robolectric
 // - Check against ClearScore and JsonSpeedRun Apps
 // - Refactor to MVVM
+
+//Done
+// - Display BookDetail in bottomSheet
 
 
 

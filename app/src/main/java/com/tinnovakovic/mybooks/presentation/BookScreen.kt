@@ -15,8 +15,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -38,8 +36,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.tinnovakovic.mybooks.domain.models.Book
 import com.tinnovakovic.mybooks.domain.models.BookDetail
@@ -47,18 +45,17 @@ import com.tinnovakovic.mybooks.domain.models.BookDetail
 @Composable
 fun BookScreen() {
     val viewModel = hiltViewModel<BookViewModel>()
-    
-    // MVVM: Observe multiple StateFlows
-    val books by viewModel.books.collectAsStateWithLifecycle()
-    val bookDetail by viewModel.bookDetail.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val isLoadingDetails by viewModel.isLoadingDetails.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
-    val showBottomSheet by viewModel.showBottomSheet.collectAsStateWithLifecycle()
-    
+
+    val books by viewModel.booksLiveData.observeAsState(emptyList())
+    val bookDetail by viewModel.bookDetailLiveData.observeAsState()
+    val isLoading by viewModel.isLoadingLiveData.observeAsState(false)
+    val isLoadingDetails by viewModel.isLoadingDetailsLiveData.observeAsState(false)
+    val error by viewModel.errorLiveData.observeAsState()
+    val showBottomSheet by viewModel.showBottomSheetLiveData.observeAsState(false)
+
     // Pagination state
-    val isLoadingMore by viewModel.isLoadingMore.collectAsStateWithLifecycle()
-    val paginationError by viewModel.paginationError.collectAsStateWithLifecycle()
+    val isLoadingMore by viewModel.isLoadingMoreLiveData.observeAsState(false)
+    val paginationError by viewModel.paginationError.observeAsState()
 
     BookContent(
         books = books,
@@ -92,16 +89,16 @@ fun BookContent(
 
     val gridState = rememberLazyGridState()
     val sheetState = rememberModalBottomSheetState()
-    
+
     // Detect when user scrolls near bottom for pagination
     LaunchedEffect(gridState) {
-        snapshotFlow { 
-            gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index 
+        snapshotFlow {
+            gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
         }.collect { lastVisibleIndex ->
             if (lastVisibleIndex != null) {
                 val totalItems = gridState.layoutInfo.totalItemsCount
                 // Trigger load when user is 3 items from the end
-                if (lastVisibleIndex >= totalItems - 3 && !isLoading) {
+                if (lastVisibleIndex >= totalItems - 3) {
                     onUiEvent(BookContract.UiEvent.LoadMore)
                 }
             }
@@ -157,7 +154,7 @@ fun BookContent(
                                 },
                             )
                         }
-                        
+
                         // Pagination footer - spans full width
                         item(span = { GridItemSpan(2) }) {
                             PaginationFooter(
@@ -350,6 +347,7 @@ fun PaginationFooter(
             isLoadingMore -> {
                 CircularProgressIndicator()
             }
+
             paginationError != null -> {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,

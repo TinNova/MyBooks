@@ -1,16 +1,17 @@
 package com.tinnovakovic.mybooks.presentation
 
 import androidx.annotation.MainThread
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.tinnovakovic.mybooks.domain.GetBookDetailUseCase
 import com.tinnovakovic.mybooks.domain.GetWantToReadBooksUseCase
+import com.tinnovakovic.mybooks.domain.models.Book
+import com.tinnovakovic.mybooks.domain.models.BookDetail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,37 +23,25 @@ class BookViewModel @Inject constructor(
     private var initialised = false
     private val compositeDisposable = CompositeDisposable()
 
-    // MVVM: Multiple StateFlows instead of single UiState
-    private val _books = MutableStateFlow<List<com.tinnovakovic.mybooks.domain.models.Book>>(emptyList())
-    val books: StateFlow<List<com.tinnovakovic.mybooks.domain.models.Book>> = _books.asStateFlow()
-
-    private val _bookDetail = MutableStateFlow<com.tinnovakovic.mybooks.domain.models.BookDetail?>(null)
-    val bookDetail: StateFlow<com.tinnovakovic.mybooks.domain.models.BookDetail?> = _bookDetail.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _isLoadingDetails = MutableStateFlow(false)
-    val isLoadingDetails: StateFlow<Boolean> = _isLoadingDetails.asStateFlow()
-
-    private val _error = MutableStateFlow<BookContract.Error?>(null)
-    val error: StateFlow<BookContract.Error?> = _error.asStateFlow()
-
-    private val _showBottomSheet = MutableStateFlow(false)
-    val showBottomSheet: StateFlow<Boolean> = _showBottomSheet.asStateFlow()
-
-    // Pagination state
-    private val _currentPage = MutableStateFlow(1)
-    val currentPage: StateFlow<Int> = _currentPage.asStateFlow()
-
-    private val _isLoadingMore = MutableStateFlow(false)
-    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
-
-    private val _canLoadMore = MutableStateFlow(true)
-    val canLoadMore: StateFlow<Boolean> = _canLoadMore.asStateFlow()
-
-    private val _paginationError = MutableStateFlow<String?>(null)
-    val paginationError: StateFlow<String?> = _paginationError.asStateFlow()
+    // MVVM: Multiple LiveData instances instead of single UiState
+    private val _booksLiveData = MutableLiveData<List<Book>>(emptyList())
+    val booksLiveData: LiveData<List<Book>> = _booksLiveData
+    private val _bookDetailLiveData = MutableLiveData<BookDetail?>(null)
+    val bookDetailLiveData: LiveData<BookDetail?> = _bookDetailLiveData
+    private val _isLoadingLiveData = MutableLiveData(false)
+    val isLoadingLiveData: LiveData<Boolean> = _isLoadingLiveData
+    private val _isLoadingDetailsLiveData = MutableLiveData(false)
+    val isLoadingDetailsLiveData: LiveData<Boolean> = _isLoadingDetailsLiveData
+    private val _errorLiveData = MutableLiveData<BookContract.Error?>(null)
+    val errorLiveData: LiveData<BookContract.Error?> = _errorLiveData
+    private val _showBottomSheetLiveData = MutableLiveData(false)
+    val showBottomSheetLiveData: LiveData<Boolean> = _showBottomSheetLiveData
+    private val _isLoadingMoreLiveData = MutableLiveData(false)
+    val isLoadingMoreLiveData: LiveData<Boolean> = _isLoadingMoreLiveData
+    private val _paginationError = MutableLiveData<String?>(null)
+    val paginationError: LiveData<String?> = _paginationError
+    private var _canLoadMore: Boolean = true
+    private var _currentPage = 1
 
     @MainThread
     fun initialise() {
@@ -73,42 +62,42 @@ class BookViewModel @Inject constructor(
     }
 
     private fun getWantToReadBooks() {
-        _isLoading.value = true
-        _currentPage.value = 1
+        _isLoadingLiveData.value = true
+        _currentPage = 1
         
         val disposable = getWantToReadBooksUseCase.execute(page = 1)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { books ->
-                    _books.value = books
-                    _isLoading.value = false
-                    _error.value = null
-                    _canLoadMore.value = books.isNotEmpty()
+                    _booksLiveData.value = books
+                    _isLoadingLiveData.value = false
+                    _errorLiveData.value = null
+                    _canLoadMore = books.isNotEmpty()
                 },
                 { error ->
-                    _isLoading.value = false
-                    _error.value = BookContract.Error.Books(error.message ?: "Unknown error")
+                    _isLoadingLiveData.value = false
+                    _errorLiveData.value = BookContract.Error.Books(error.message ?: "Unknown error")
                 }
             )
         compositeDisposable.add(disposable)
     }
 
     private fun retryInitialLoad() {
-        _books.value = emptyList()
-        _error.value = null
+        _booksLiveData.value = emptyList()
+        _errorLiveData.value = null
         getWantToReadBooks()
     }
 
     private fun loadNextPage() {
         // Debouncing: prevent multiple simultaneous loads
-        if (_isLoadingMore.value || !_canLoadMore.value || _isLoading.value) {
+        if (_isLoadingMoreLiveData.value == true || !_canLoadMore || _isLoadingLiveData.value == true) {
             return
         }
 
-        _isLoadingMore.value = true
+        _isLoadingMoreLiveData.value = true
         _paginationError.value = null
-        val nextPage = _currentPage.value + 1
+        val nextPage = _currentPage + 1
         
         val disposable = getWantToReadBooksUseCase.execute(page = nextPage)
             .subscribeOn(Schedulers.io())
@@ -117,16 +106,16 @@ class BookViewModel @Inject constructor(
                 { newBooks ->
                     if (newBooks.isEmpty()) {
                         // No more data to load
-                        _canLoadMore.value = false
+                        _canLoadMore = false
                     } else {
                         // Append new books to existing list
-                        _books.value = _books.value + newBooks
-                        _currentPage.value = nextPage
+                        _booksLiveData.value = _booksLiveData.value.orEmpty() + newBooks
+                        _currentPage = nextPage
                     }
-                    _isLoadingMore.value = false
+                    _isLoadingMoreLiveData.value = false
                 },
                 { error ->
-                    _isLoadingMore.value = false
+                    _isLoadingMoreLiveData.value = false
                     _paginationError.value = error.message ?: "Failed to load more books"
                 }
             )
@@ -139,29 +128,29 @@ class BookViewModel @Inject constructor(
     }
 
     private fun getBookDetails(key: String) {
-        _isLoadingDetails.value = true
-        _showBottomSheet.value = true
+        _isLoadingDetailsLiveData.value = true
+        _showBottomSheetLiveData.value = true
         
         val disposable = getBookDetailUseCase.execute(key)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { bookDetail ->
-                    _bookDetail.value = bookDetail
-                    _isLoadingDetails.value = false
-                    _error.value = null
+                    _bookDetailLiveData.value = bookDetail
+                    _isLoadingDetailsLiveData.value = false
+                    _errorLiveData.value = null
                 },
                 { error ->
-                    _isLoadingDetails.value = false
-                    _error.value = BookContract.Error.BookDetail(error.message ?: "Failed to load book details")
+                    _isLoadingDetailsLiveData.value = false
+                    _errorLiveData.value = BookContract.Error.BookDetail(error.message ?: "Failed to load book details")
                 }
             )
         compositeDisposable.add(disposable)
     }
 
     private fun dismissBottomSheet() {
-        _showBottomSheet.value = false
-        _bookDetail.value = null
+        _showBottomSheetLiveData.value = false
+        _bookDetailLiveData.value = null
     }
 
     override fun onCleared() {
@@ -174,15 +163,17 @@ class BookViewModel @Inject constructor(
 
 //TODO:
 // - Clean the code
-// - Handle pagination
 // - Write Unit Tests
 // - Write Compose Tests in Robolectric
 // - Check against ClearScore and JsonSpeedRun Apps
+// - Error Mapper contains hardcoded strings, add to stringRes and create a contextWrapper to access them, then write tests
 //
 //Done:
 // - Display BookDetail in bottomSheet
 // - Handle offline and network errors in domain layer
 // - Refactor to MVVM with event-based interactions
+// - Handle pagination
+
 
 
 

@@ -105,6 +105,7 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.androidx.arch.core.testing)
     kaptTest(libs.hilt.compiler)
 
     // Testing - Instrumentation

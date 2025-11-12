@@ -1,7 +1,10 @@
-The MVVM and MVI patterns are very similar, however MVI has clear advantages.
+# Android App Utilising The OpenLibrary Api
 
-MVVM calls methods in the ViewModel directly, this means that Compose methods will have a reference of the ViewModel making them hard to test and not possible to test within Robolectric.
-MVVM exposes multiple steams of State to the UI, this means that the screen can be updated from a multitude of places making it harder to predict the state of the screen.
+### This App follows the Clean Architecture Pattern.
 
-MVI calls methods in the ViewModel indirectly via lambda functions, this means that Compose methods do not have a reference to the ViewModel, therefore they can be tested like unit tests.
-MVI has a single state object shared with the screen, this reduces complexity.
+### The ViewModel follows a modified MVVM pattern that works with Compose.
+- Multiple State Holders are maintained
+- The view does not directly call the ViewModel, I modified the traditional MVVM pattern in order to maintain the Compose Screen Unit-Testable
+  - With the help of Robolectric the Compose Screen can be unit tested, eliminating the need for an emulator or device.
+
+#### It wasn't a requirement however as the want-to-read endpoint is paginated I decided to handle this case

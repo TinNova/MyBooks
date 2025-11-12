@@ -16,7 +16,7 @@ class GetBookDetailUseCase @Inject constructor(
                 BookDetail(
                     title = workApi.title ?: "",
                     firstPublishDate = workApi.firstPublishDate ?: "",
-                    latestRevision = workApi.latestRevision.toString(),
+                    latestRevision = workApi.latestRevision?.toString() ?: "",
                     description = workApi.description ?: "",
                     subjectPlaces = workApi.subjectPlaces ?: emptyList()
                 )

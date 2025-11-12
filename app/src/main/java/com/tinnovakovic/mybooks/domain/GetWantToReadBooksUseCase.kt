@@ -9,10 +9,10 @@ class GetWantToReadBooksUseCase @Inject constructor(
     private val repo: BookRepo,
     private val errorMapper: ErrorMapper) {
 
-    fun execute(page: Int = 1): Single<List<Book>> {
+    fun execute(page: Int): Single<List<Book>> {
         return repo.getWantToReadBooks(page)
-            .map { result ->
-                result.entries.map { entry ->
+            .map { bookResultApi ->
+                bookResultApi.entries.map { entry ->
                     Book(
                         title = entry.work.title,
                         key = entry.work.key,

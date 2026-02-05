@@ -8,7 +8,6 @@ interface BookContract {
     sealed class Error {
         data class Books(val message: String): Error()
         data class BookDetail(val message: String): Error()
-        data class Pagination(val message: String): Error()
     }
 
     sealed class UiEvent {

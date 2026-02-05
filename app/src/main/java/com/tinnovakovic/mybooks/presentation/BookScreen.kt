@@ -35,12 +35,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.tinnovakovic.mybooks.domain.models.Book
 import com.tinnovakovic.mybooks.domain.models.BookDetail
+
+@Target(AnnotationTarget.FUNCTION)
+annotation class ComposeTest
+
 
 @Composable
 fun BookScreen() {
@@ -367,4 +372,177 @@ fun PaginationFooter(
             }
         }
     }
+}
+
+// Previews
+@ComposeTest
+@Preview(showBackground = true, name = "Loading State")
+@Composable
+fun BookContentLoadingPreview() {
+    BookContent(
+        books = emptyList(),
+        bookDetail = null,
+        isLoading = true,
+        isLoadingDetails = false,
+        error = null,
+        showBottomSheet = false,
+        isLoadingMore = false,
+        paginationError = null,
+        onUiEvent = {}
+    )
+}
+
+@ComposeTest
+@Preview(showBackground = true, name = "Error State")
+@Composable
+fun BookContentErrorPreview() {
+    BookContent(
+        books = emptyList(),
+        bookDetail = null,
+        isLoading = false,
+        isLoadingDetails = false,
+        error = BookContract.Error.Books("Failed to load books. Please check your internet connection."),
+        showBottomSheet = false,
+        isLoadingMore = false,
+        paginationError = null,
+        onUiEvent = {}
+    )
+}
+
+@Preview(showBackground = true, name = "Books List")
+@Composable
+fun BookContentSuccessPreview() {
+    val sampleBooks = listOf(
+        Book(
+            title = "The Lord of the Rings",
+            key = "/works/OL27448W",
+            authorNames = "J.R.R. Tolkien",
+            coverUrl = "https://covers.openlibrary.org/b/id/8234024-L.jpg"
+        ),
+        Book(
+            title = "Harry Potter and the Philosopher's Stone",
+            key = "/works/OL82563W",
+            authorNames = "J.K. Rowling",
+            coverUrl = "https://covers.openlibrary.org/b/id/10521270-L.jpg"
+        ),
+        Book(
+            title = "1984",
+            key = "/works/OL1168007W",
+            authorNames = "George Orwell",
+            coverUrl = "https://covers.openlibrary.org/b/id/7222246-L.jpg"
+        ),
+        Book(
+            title = "To Kill a Mockingbird",
+            key = "/works/OL16304310W",
+            authorNames = "Harper Lee",
+            coverUrl = "https://covers.openlibrary.org/b/id/8228691-L.jpg"
+        )
+    )
+    
+    BookContent(
+        books = sampleBooks,
+        bookDetail = null,
+        isLoading = false,
+        isLoadingDetails = false,
+        error = null,
+        showBottomSheet = false,
+        isLoadingMore = false,
+        paginationError = null,
+        onUiEvent = {}
+    )
+}
+
+@Preview(showBackground = true, name = "Books with Pagination Loading")
+@Composable
+fun BookContentPaginationLoadingPreview() {
+    val sampleBooks = listOf(
+        Book(
+            title = "The Great Gatsby",
+            key = "/works/OL468431W",
+            authorNames = "F. Scott Fitzgerald",
+            coverUrl = "https://covers.openlibrary.org/b/id/7222168-L.jpg"
+        ),
+        Book(
+            title = "Pride and Prejudice",
+            key = "/works/OL66554W",
+            authorNames = "Jane Austen",
+            coverUrl = "https://covers.openlibrary.org/b/id/8235657-L.jpg"
+        )
+    )
+    
+    BookContent(
+        books = sampleBooks,
+        bookDetail = null,
+        isLoading = false,
+        isLoadingDetails = false,
+        error = null,
+        showBottomSheet = false,
+        isLoadingMore = true,
+        paginationError = null,
+        onUiEvent = {}
+    )
+}
+
+@Preview(showBackground = true, name = "Books with Pagination Error")
+@Composable
+fun BookContentPaginationErrorPreview() {
+    val sampleBooks = listOf(
+        Book(
+            title = "The Catcher in the Rye",
+            key = "/works/OL3335920W",
+            authorNames = "J.D. Salinger",
+            coverUrl = "https://covers.openlibrary.org/b/id/8234024-L.jpg"
+        ),
+        Book(
+            title = "Brave New World",
+            key = "/works/OL64465W",
+            authorNames = "Aldous Huxley",
+            coverUrl = "https://covers.openlibrary.org/b/id/7222168-L.jpg"
+        )
+    )
+    
+    BookContent(
+        books = sampleBooks,
+        bookDetail = null,
+        isLoading = false,
+        isLoadingDetails = false,
+        error = null,
+        showBottomSheet = false,
+        isLoadingMore = false,
+        paginationError = "Failed to load more books",
+        onUiEvent = {}
+    )
+}
+
+@Preview(showBackground = true, name = "Book Detail Bottom Sheet")
+@Composable
+fun BookContentWithBottomSheetPreview() {
+    val sampleBooks = listOf(
+        Book(
+            title = "The Hobbit",
+            key = "/works/OL27482W",
+            authorNames = "J.R.R. Tolkien",
+            coverUrl = "https://covers.openlibrary.org/b/id/8234024-L.jpg"
+        )
+    )
+    
+    val sampleBookDetail = BookDetail(
+        title = "The Hobbit",
+        firstPublishDate = "September 21, 1937",
+        latestRevision = "2024",
+        description = "A fantasy novel about the adventure of Bilbo Baggins, a hobbit who lives in a comfortable home in the Shire. One day, the wizard Gandalf and a group of dwarves arrive at his door and convince him to join them on an epic quest to reclaim the Lonely Mountain from the dragon Smaug.",
+        subjectPlaces = listOf("Middle-earth", "The Shire", "Lonely Mountain", "Rivendell")
+    )
+    
+    BookContent(
+        books = sampleBooks,
+        bookDetail = sampleBookDetail,
+        isLoading = false,
+        isLoadingDetails = false,
+        error = null,
+        showBottomSheet = true,
+        isLoadingMore = false,
+        paginationError = null,
+        onUiEvent = {}
+    )
 }

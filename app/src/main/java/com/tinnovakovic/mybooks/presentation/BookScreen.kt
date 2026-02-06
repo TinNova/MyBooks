@@ -370,7 +370,6 @@ fun PaginationFooter(
     }
 }
 
-// Previews
 @Preview(showBackground = true, name = "Loading State")
 @Composable
 fun BookContentLoadingPreview() {

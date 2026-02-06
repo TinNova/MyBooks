@@ -37,6 +37,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.tooling.preview.Devices.PHONE
+import androidx.compose.ui.tooling.preview.Devices.PIXEL_FOLD
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
@@ -386,7 +388,7 @@ fun BookContentLoadingPreview() {
     )
 }
 
-@Preview(showBackground = true, name = "Error State")
+@PreviewScreenFormats
 @Composable
 fun BookContentErrorPreview() {
     BookContent(
@@ -402,7 +404,7 @@ fun BookContentErrorPreview() {
     )
 }
 
-@Preview(showBackground = true, name = "Books List")
+@PreviewScreenFormats
 @Composable
 fun BookContentSuccessPreview() {
     val sampleBooks = listOf(
@@ -539,3 +541,11 @@ fun BookContentWithBottomSheetPreview() {
         onUiEvent = {}
     )
 }
+
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.FUNCTION)
+@Preview(name = "Phone", device = PHONE, showSystemUi = true)
+@Preview(name = "Phone 150%", device = PHONE, showSystemUi = true, fontScale = 2f)
+@Preview(name = "Unfolded Foldable", device = PIXEL_FOLD, showSystemUi = true)
+@Preview(name = "Unfolded Foldable", device = PIXEL_FOLD, showSystemUi = true, fontScale = 2f)
+annotation class PreviewScreenFormats

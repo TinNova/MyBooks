@@ -128,23 +128,3 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
-
-// Task to copy @Preview composables to screenshot tests
-tasks.register<CopyPreviewsTask>("copyPreviewsToScreenshotTests") {
-    group = "screenshot"
-    description = "Copies @Preview composables from BookScreen.kt to ScreenshotTests.kt"
-    
-    sourceFile.set(file("src/main/java/com/tinnovakovic/mybooks/presentation/BookScreen.kt"))
-    targetFile.set(file("src/screenshotTest/kotlin/com/tinnovakovic/mybooks/ScreenshotTests.kt"))
-    packageName.set("com.tinnovakovic.mybooks")
-}
-
-// Task to scan entire project for @ComposeTest annotated functions
-tasks.register<ScanComposeTestsTask>("scanComposeTestsToScreenshotTests") {
-    group = "screenshot"
-    description = "Scans entire project for @ComposeTest annotated functions and generates ScreenshotTests.kt"
-    
-    sourceDirectory.set(file("src/main/java"))
-    targetFile.set(file("src/screenshotTest/kotlin/com/tinnovakovic/mybooks/ScreenshotTests.kt"))
-    targetPackage.set("com.tinnovakovic.mybooks")
-}

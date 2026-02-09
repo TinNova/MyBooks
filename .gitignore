@@ -13,4 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
-/cacheable/caches-jvm/lookups
+/cacheable/
+/buildSrc/build/kotlin/compileKotlin/cacheable/caches-jvm/*

@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.screenshot)
+    alias(libs.plugins.paparazzi)
     id("kotlin-kapt")
 }
 
@@ -49,6 +50,11 @@ android {
     }
 
     experimentalProperties["android.experimental.enableScreenshotTest"] = true
+}
+
+// Disable Paparazzi's custom HTML report to workaround Gradle 8.13 compatibility
+tasks.withType<Test>().configureEach {
+    reports.html.required.set(false)
 }
 
 dependencies {
@@ -106,6 +112,8 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.mockk)
     testImplementation(libs.turbine)
+    testImplementation("com.google.testing.compile:compile-testing:0.21.0")
+    testImplementation("com.google.testparameterinjector:test-parameter-injector:1.18")
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.hilt.android.testing)

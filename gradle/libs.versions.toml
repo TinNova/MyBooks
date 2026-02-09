@@ -43,6 +43,7 @@ robolectric = "4.16"
 runtimeLivedata = "1.9.4"
 archCoreTesting = "2.2.0"
 screenshot = "0.0.1-alpha13"
+paparazzi = "2.0.0-alpha04"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -118,4 +119,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltVersion" }
 kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 screenshot = { id = "com.android.compose.screenshot", version.ref = "screenshot" }
+paparazzi = { id = "app.cash.paparazzi", version.ref = "paparazzi" }
 

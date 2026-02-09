@@ -1,5 +1,6 @@
 package com.tinnovakovic.mybooks.data
 
+import com.tinnovakovic.mybooks.ContextWrapper
 import com.tinnovakovic.mybooks.data.models.BookResultApi
 import com.tinnovakovic.mybooks.data.models.Entry
 import com.tinnovakovic.mybooks.data.models.Work
@@ -14,11 +15,12 @@ import org.junit.jupiter.api.Test
 class BookRepoTest {
 
     private var bookApi: BookApi = mockk()
+    private var contextWrapper: ContextWrapper = mockk(relaxed = true)
     private lateinit var sut: BookRepo
 
     @BeforeEach
     fun setup() {
-        sut = BookRepo(bookApi)
+        sut = BookRepo(bookApi, contextWrapper)
     }
 
     @Test
